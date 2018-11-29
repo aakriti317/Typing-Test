@@ -1,0 +1,212 @@
+\chapter{Implementation}
+\paragraph{}WRITE HERE, PARAGRAPH 1.
+
+\begin{lstlisting}
+pragma solidity ^0.4.0;
+
+contract Registry {
+    struct Detail {
+        string ownerName;
+        string dateOfRegistry;
+        uint32 khasraNumber;
+    }
+    address private contractOwner;
+    mapping(uint64 => Detail) registryList;
+    
+    function Registry() public {
+        contractOwner = msg.sender;
+    }
+    function isOwnerOfContract() view public returns (bool) {
+        return msg.sender == contractOwner;
+    }
+    function newRegistry(uint64 hash, uint32 khasraNumber, string name, string dateOfRegistry) public returns (bool) {
+        if(isOwnerOfContract()) {
+            registryList[hash].ownerName = name;
+            registryList[hash].khasraNumber = khasraNumber;
+            registryList[hash].dateOfRegistry = dateOfRegistry;
+            return true;
+        }
+        return false;
+    }
+    
+    function getRegistry(uint64 hash) view public returns (string, string, uint32) {
+        return (registryList[hash].ownerName, registryList[hash].dateOfRegistry, registryList[hash].khasraNumber);
+    }
+}
+\end{lstlisting}
+\paragraph{} write paragraph here 2
+\begin{lstlisting}
+ const express = require('express');
+const Web3 = require('web3');
+const hbs = require('hbs');
+const fs = require('fs');
+const parser = require('body-parser');
+const sha = require('sha256');
+
+const pathToSolidity = __dirname +'/SolidityCode/';
+var urlencodedParser = parser.urlencoded({ extended: true });
+const app = express();
+app.use(urlencodedParser);
+
+app.set('view engine', 'hbs');
+
+
+web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+
+abiDefinition = JSON.parse(fs.readFileSync(pathToSolidity +'interface.json'));
+RegistryContract = web3.eth.contract(abiDefinition);
+
+contractInstance = RegistryContract.at(fs.readFileSync(pathToSolidity +'contractAddress').toString());
+
+
+app.get('/', (req, res) => {
+	res.render('index');
+});
+
+app.post('/registerLand', (req, res) => {
+	var name = req.body.owner;
+	var city = req.body.city;
+	var area = req.body.area;
+	var khasraNumber = req.body.khasraNumber;
+	var date = req.body.date;
+	var transactionId = contractInstance.newRegistry(parseInt(sha(city +area +khasraNumber)), khasraNumber, name, date, {from: web3.eth.accounts[0]});
+	console.log(transactionId);
+	res.render('index');
+});
+
+app.post('/getLand', (req, res) => {
+	var city = req.body.city;
+	var area = req.body.area;
+	var khasraNumber = req.body.khasraNumber;
+	var result = contractInstance.getRegistry.call(parseInt(sha(city +area +khasraNumber)));
+	res.send(result);
+	console.log(result);
+});
+
+
+app.listen(3000, () => {
+	console.log("Listening on port 3000");
+});
+\end{lstlisting}
+\paragraph{}WRITE HERE, PARAGRAPH 2.
+
+\begin{lstlisting}
+const fs = require('fs');
+const sol = require('solc');
+const Web3 = require('web3');
+
+const pathToSolidity = __dirname +'/SolidityCode/';
+code = fs.readFileSync(pathToSolidity +'code.sol').toString();
+
+compiledCode = sol.compile(code);
+web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+
+
+abiDefinition = JSON.parse(compiledCode.contracts[':Registry'].interface);
+Registry = web3.eth.contract(abiDefinition);
+
+byteCode = '0x' +compiledCode.contracts[':Registry'].bytecode;
+interface = compiledCode.contracts[':Registry'].interface;
+dc = Registry.new([], {data: byteCode, from: web3.eth.accounts[0], gas: 4700000});
+// console.log('Address is ', dc.address);
+fs.writeFileSync(pathToSolidity +'interface.json', interface);
+if(dc != undefined)
+	fs.writeFileSync(pathToSolidity +'contractAddress', dc.address);
+console.log('Code Deployed');
+\end{lstlisting}
+\paragraph{} This is INTERFACE Code 
+\begin{lstlisting}
+[{"constant":false,"inputs":[{"name":"hash","type":"uint64"},
+{"name":"khasraNumber","type":"uint32"},{"name":"name","type":"string"},
+{"name":"dateOfRegistry","type":"string"}],"name":"newRegistry",
+"outputs":[{"name":"","type":"bool"}],"payable":false,
+"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],
+"name":"isOwnerOfContract","outputs":[{"name":"","type":"bool"}],
+"payable":false,"stateMutability":"view","type":"function"},
+{"constant":true,"inputs":[{"name":"hash","type":"uint64"}],
+"name":"getRegistry","outputs":[{"name":"","type":"string"},
+{"name":"","type":"string"},{"name":"","type":"uint32"}],
+"payable":false,"stateMutability":"view","type":"function"},
+{"inputs":[],"payable":false,"stateMutability":"nonpayable",
+"type":"constructor"}]
+\end{lstlisting}
+\paragraph{} NODE JS PROGRAM ...
+\begin{lstlisting}
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Block-chain</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css
+	/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+
+	058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+</head>
+<body>
+	<H1 align= "center" style="margin-top: 24px;">Welcome to block chain</H1>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6" align="center" style="margin-top: 16px">
+		<h3>Register Land</h3>
+		<form class="jumbotron" action="registerLand" method="post" style="max-width: 400px">
+			<input class="form-control" type="text" name="owner" placeholder="Owner" maxlength="20"><br>
+			<input class="form-control" type="text" name="city" placeholder="City Name" maxlength="20"><br>
+			<input class="form-control" type="text" name="area" placeholder="Area Name" maxlength="20"><br>
+			<input class="form-control" type="number" name="khasraNumber" placeholder="Khasra Number" maxlength="20"><br>
+			<input class="form-control" type="date" name="date" placeholder="Date of Registry" maxlength="10"><br>
+			<button type="Submit" class="btn btn-danger form-control">Submit</button>
+		</form>
+	</div>
+	<div class="col-lg-6" align="center" style="margin-top: 16px">
+		<h3>Search Land</h3>
+		<form class="jumbotron" action="getLand" method="post"
+		style="max-width: 400px">
+			<input class="form-control" type="text" name="city" placeholder="City Name" maxlength="20"><br>
+			<input class="form-control" type="text" name="area" placeholder="Area Name" maxlength="20"><br>
+			<input class="form-control" type="number" name="khasraNumber" placeholder="Khasra Number" maxlength="20"><br>
+			<button type="Submit" class="btn btn-success form-control">Search</button>
+		</form>
+	</div>
+		</div>
+	</div>
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/
+	rE9/
+	Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/
+popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/
+ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/
+JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>
+\end{lstlisting}
+
+\paragraph{} This Is ganache CLI CONTENT
+\begin{lstlisting}
+@IF EXIST "%~dp0\node.exe" (
+  "%~dp0\node.exe"  "%~dp0\..\ganache-cli\build\cli.node.js" %*
+) ELSE (
+  @SETLOCAL
+  @SET PATHEXT=%PATHEXT:;.JS;=;%
+  node  "%~dp0\..\ganache-cli\build\cli.node.js" %*
+)
+\end{lstlisting}
+
+\paragraph{} This is the Manual to Run Application
+\begin{lstlisting}
+Install node js 
+
+npm install //to install all dependencies
+npm install ganache-cli //to install ganache blockchain simulator
+
+ Go through the following steps to deploy contract and to use the Application
+	1.Open terminal in project directory and type "node_modules/.bin/ganache-cli" 
+	2.Open new terminal in project directory and type "node deployecode.js"
+	3.Copy the contract address obtained in "SolidityCode/contractAddress" file
+	4.Type the command "node app.js" in terminal
+
+Open browser and goto address : "localhost:3000"  
+\end{lstlisting}
+\newpage
+

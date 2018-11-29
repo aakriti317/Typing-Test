@@ -1,0 +1,23 @@
+\chapter{System Testing}
+\paragraph{}
+\section{Test Cases and Test Results}
+\begin{longtable}{ | p{1cm} | p{3.5cm} | p{4cm} | p{4cm} | p{4cm} |}
+      \hline
+      \textbf{Test ID} & \textbf{Test Case Title} & \textbf{Test Condition} & \textbf{System Behavior} & \textbf{Expected Result}\\
+      \hline
+      T01 & Register Land & Owner Exist And Valid User & Transaction Successful & Successfully  Registered\\
+      \hline
+       T02 & Register Land & Owner Exist and Not Valid User & Transaction Failed& failure\\
+      \hline T03 & Search Land & Owner Exist and Land Exist & Transaction Successful & Successfully searched\\
+      \hline
+       T04& Register Land & Owner Not Exist and NOT valid User& Transaction Failed & Failure \\
+      \hline
+       T05& Register Land & Owner Not Exist and valid User& Transaction successful & Successfully Registered \\
+      \hline
+       T06& Search Land & Owner Exist and Land Not Exist&Land Not Found& Failure \\
+      \hline 
+      T06& Search Land & Owner Not Exist and Land Not Exist&Transaction Failed& Failure \\
+      \hline 
+\end{longtable}
+
+\textbf{Note: Testing performed manually}
